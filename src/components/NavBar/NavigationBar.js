@@ -35,12 +35,10 @@ function NavigationBar() {
       >
         <NavItem>
           <Link to="/" className="text-white">
-            JSOM
+            Blog App Admin
           </Link>
         </NavItem>
-        {/* <NavLink className=" text-white" to="/">
-          {!isNaN(pathName.split('/')[1]) ? 'Authors' : pathName.split('/')[1]}
-        </NavLink> */}
+        
         <NavbarToggler onClick={toggle} style={{width: 'auto'}} />
         <Collapse
           className=""
@@ -53,6 +51,18 @@ function NavigationBar() {
         >
           <Nav className="ml-auto" navbar>
             <NavItem>
+              <Link to="/analytics" onClick={toggle}>
+                <p
+                  className={`m-2 ${
+                    pathName.split('/')[1] === 'analytics'
+                      ? 'text-white'
+                      : 'text-secondary'
+                  }`}
+                >
+                  {' '}
+                  Analytics
+                </p>
+              </Link>
               <Link to="/" onClick={toggle}>
                 <p
                   className={`m-2 ${

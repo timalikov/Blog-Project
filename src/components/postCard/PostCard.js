@@ -5,11 +5,20 @@ import db from '../../utils/db.json'
 function PostCard(props) {
   const [authorName, setauthorName] = useState('')
 
-  const fetchData = useCallback(() => {
-    const user = db.authors[props.authorId]
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/users/${props.authorId}/`);
+      const authorData = await response.json();
+      setauthorName(authorData.first_name + ' ' + authorData.last_name);
 
-    setauthorName(user.firstName + ' ' + user.lastName)
-  }, [props.authorId])
+      // test
+      console.log('authordata', authorData)
+      console.log('postcart users authorid', props.authorId)
+    } catch (error) {
+      console.error('Error fetching author:', error);
+    }
+  }, [props.authorId]);
+  
 
   useEffect(() => {
     fetchData()

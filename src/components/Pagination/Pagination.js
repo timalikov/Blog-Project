@@ -7,7 +7,7 @@ function Pagination(props) {
         <li
           className={`page-item ${
             props.pageNo === 1 || props.pageNo === 0 || isNaN(props.pageNo)
-              ? 'disabled'
+              ? 'enabled'
               : ''
           }`}
         >

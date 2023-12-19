@@ -1,85 +1,92 @@
-import React, {useReducer, useEffect} from 'react'
-import {Container, Row, Col} from 'reactstrap'
-import Card from '../../components/card/Card'
-import 'bootstrap/dist/css/bootstrap.css'
-import axios from 'axios'
-import Pagination from '../../components/Pagination/Pagination'
-import Footer from '../../components/Footer/Footer'
-import NavigationBar from '../../components/NavBar/NavigationBar'
-import db from '../../utils/db.json'
+import React, { useReducer, useEffect } from 'react';
+import axios from 'axios';
+import { Container, Row, Col } from 'reactstrap';
+import Card from '../../components/card/Card';
+import Pagination from '../../components/Pagination/Pagination';
+import 'bootstrap/dist/css/bootstrap.css';
 
 const initialUsers = {
   loading: true,
   users: [],
   error: '',
   pageNo: 1,
-}
+  total_pages: 0
+};
 
 const reducer = (state, action) => {
   switch (action.type) {
     case 'FETCH_SUCCESS':
       return {
-        loading: action.loading,
+        ...state,
+        loading: false,
         users: action.payload,
         error: '',
         pageNo: action.pageNo,
-      }
+        total_pages: action.total_pages
+      };
     case 'FETCH_ERROR':
       return {
+        ...state,
         loading: false,
         users: [],
         error: 'Something Went Wrong!!!',
         pageNo: 1,
-      }
+        total_pages: 0
+      };
     default:
-      return state
+      return state;
   }
-}
+};
 
-function Body({match}) {
-  const [state, dispatchState] = useReducer(reducer, initialUsers)
+function Body({ match }) {
+  const [state, dispatchState] = useReducer(reducer, initialUsers);
 
   useEffect(() => {
-    let startIndex = ((match.params.pageNo || 1) - 1) * 18
-    const data = db.authors.slice(startIndex, startIndex + 18)
-    dispatchState({
-      type: 'FETCH_SUCCESS',
-      payload: data,
-      error: '',
-      loading: false,
-      pageNo: parseInt(match.params.pageNo),
-    })
-  }, [match])
+    const pageNo = parseInt(match.params.pageNo) || 1;
+
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/users/?page=${pageNo}&limit=18`);
+        
+        dispatchState({
+          type: 'FETCH_SUCCESS',
+          payload: response.data.users,
+          pageNo,
+          total_pages: response.data.total_pages
+        });
+      } catch (error) {
+        dispatchState({
+          type: 'FETCH_ERROR',
+          error: error.message || 'Something Went Wrong!!!'
+        });
+      }
+    };
+
+    fetchUsers();
+  }, [match.params.pageNo]);
 
   return (
-    <div>
-      <Container>
-        {/* It is usefull when we fetch data from server */}
-        {state.error !== '' ? (
-          <h1 className="text-center">{state.error}</h1>
-        ) : (
-          ''
-        )}
-        {state.loading ? (
-          <h1 className="text-center">Loading... Please Wait...</h1>
-        ) : (
-          ''
-        )}
+    <Container>
+      {state.error && <h1 className="text-center">{state.error}</h1>}
+      {state.loading ? (
+        <h1 className="text-center">Loading... Please Wait...</h1>
+      ) : (
         <Row>
-          {state.users.map(user => {
-            return (
-              <Col key={user.id} md={4} sm={6} xs={12}>
-                <Card
-                  name={`${user.firstName} ${user.lastName}`}
-                  id={user.id}
-                />
-              </Col>
-            )
-          })}
-        </Row>
-        <Pagination page="/" pageNo={state.pageNo} />
-      </Container>
-    </div>
-  )
+        {state.users.map(user => (
+          <Col key={user.id} md={4} sm={6} xs={12}>
+            <Card 
+              firstName={user.first_name}
+              lastName={user.last_name} 
+              id={user.id} 
+            />
+          </Col>
+        ))}
+      </Row>
+    
+      )}
+      <Pagination page="/" pageNo={state.pageNo} total_pages={state.total_pages} />
+    </Container>
+  );
 }
-export default Body
+
+export default Body;

@@ -4,25 +4,49 @@ import NavigationBar from '../../components/NavBar/NavigationBar'
 import './PostPage.css'
 import Comment from '../../components/comments/Comment'
 import db from '../../utils/db.json'
+import axios from 'axios'
+
 function PostPage({match}) {
   const [post, setPost] = useState({})
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [likes, setLikes] = useState(post.likes);
 
-  const fetchPost = useCallback(id => {
-    const post = db.posts[id]
-    console.log({post})
-    setPost({...post})
+  const handleLike = () => {
+      axios.post(`http://127.0.0.1:8000/posts/${post.id}/increment-likes/`)
+          .then(response => {
+              setLikes(response.data.likes);
+          })
+          .catch(error => {
+              console.error('There was an error!', error);
+          });
+  };
+
+  const fetchPost = useCallback(async id => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/posts/${id}/`);
+      const postData = await response.json();
+      console.log('post data', postData)
+      setPost(postData[0]);
+    }
+    catch (error) {
+      console.log(error);
+    }
   }, [])
 
-  const fetchComments = useCallback(id => {
-    console.log('Before fetch comment ')
-    const data = db.comments.filter(
-      coment => parseInt(coment.postId) === parseInt(id),
-    )
-    console.log('After fetch comment ', data)
-    setLoading(false)
-    setComments([...data])
+  const postAuthor = post.authorId
+  console.log('post author', postAuthor)
+  const fetchComments = useCallback(async id => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/comments/byPost/${id}/`);
+      const commentData = await response.json();
+      console.log('comment data', commentData)
+      setComments([...commentData]);
+    }
+    catch (error) {
+      console.log(error);
+    }
+    setLoading(false);
   }, [])
 
   useEffect(() => {
@@ -46,6 +70,7 @@ function PostPage({match}) {
           description={post.description}
         />
       )}
+       <button onClick={handleLike}>Like</button>
 
       <h4 className="mt-4 text-center">Comments</h4>
       <div className="comment-box d-flex justify-content-center">

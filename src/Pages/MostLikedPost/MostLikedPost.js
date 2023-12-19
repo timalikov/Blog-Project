@@ -66,16 +66,24 @@ function MostLikedPost() {
   )
 
   // end of quick sort
-  const fetchPost = useCallback(() => {
-    let data = db.posts
-
-    let result = quickSort(data, 0, data.length - 1)
-
-    data = result.reverse().slice(0, 10)
-    // console.log(data)
-    setIsLoading(false)
-    setPosts([...data])
-  }, [quickSort])
+  const fetchPost = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/posts/all_posts/');
+      const data = await response.json();
+      let sortedData = quickSort([...data], 0, data.length - 1); // Create a copy of data for sorting
+      sortedData = sortedData.reverse().slice(0, 10);
+      setPosts(sortedData);
+  
+      // test
+      console.log('posts', posts)
+      console.log('sortedData', sortedData)
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
+    setIsLoading(false);
+  }, [quickSort]);
+  
 
   useEffect(() => {
     fetchPost()
@@ -101,13 +109,6 @@ function MostLikedPost() {
             ))
           )}
 
-          {/* <Post></Post>
-                    <Post></Post>
-                    <Post></Post>
-                    <Post></Post>
-                    <Post></Post>
-                    <Post></Post>
-                    <Post></Post> */}
         </ul>
       </div>
     </div>

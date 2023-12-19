@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react'
 import './profile.css'
+import axios from 'axios';
 
 import Footer from '../../components/Footer/Footer'
 import NavigationBar from '../../components/NavBar/NavigationBar'
@@ -12,29 +13,38 @@ function Profile({match}) {
   const [posts, setPosts] = useState([]) // for Seting Post
   const [author, setAuthor] = useState({}) // for Setting Author
   const [activeButton, setActiveButton] = useState('') // for active Button
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // for fetching Post from server
-  const fetchPost = useCallback(async id => {
-    let posts = db.posts.filter(post => post.authorId === parseInt(id))
+   // Fetching posts from server
+   const fetchPost = useCallback(async (id) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/posts/author/${id}/`);
+      setPosts(response.data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    setPosts(posts)
-  }, [])
+  // Fetching user from server
+  const fetchUser = useCallback(async (authorId) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/users/${authorId}/`);
+      setAuthor(response.data);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  }, []);
 
-  // fetching user
-  const fetchUser = useCallback(async id => {
-    const user = db.authors[id]
-    setAuthor(user)
-  }, [])
-
-  // for retriveing post
   useEffect(() => {
-    fetchPost(match.params.authorId)
-  }, [fetchPost, match.params.authorId])
+    const authorId = match.params.authorId;
+    fetchPost(authorId);
+    fetchUser(authorId);
+  }, [fetchPost, fetchUser, match.params.authorId]);
 
-  //for retriving user
-  useEffect(() => {
-    fetchUser(match.params.authorId)
-  }, [fetchUser, match.params.authorId])
 
   // Sorting By Assending Date
   const ascDate = useCallback(() => {
@@ -116,13 +126,15 @@ function Profile({match}) {
 
   return (
     <div>
-      {/* Author Details */}
-      <AuthorCard author={author} />
-
+      <AuthorCard
+       firstName={author.first_name}
+       lastName={author.last_name}
+        phone={author.phone}
+        numPosts={author.num_posts}
+        numLikes={author.num_ikes}
+       />
       <div className="container">
         <h3 className="pt-4 pl-4 pb-3">Posts</h3>
-
-        {/* Filter Header */}
         <FilterHeader
           activeButton={activeButton}
           ascDate={ascDate}
@@ -130,10 +142,10 @@ function Profile({match}) {
           ascLike={ascLike}
           dscLike={dscLike}
         />
-
         <UserPostList posts={posts} />
       </div>
     </div>
-  )
+  );
 }
+
 export default Profile
