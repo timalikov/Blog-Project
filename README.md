@@ -77,5 +77,3 @@ To view the analytics:
 - **Real-time Updates**: Incorporating real-time data fetching to keep the analytics updated.
 
 ---
-
-This documentation outlines the current functionality and setup of the User Analytics feature. It can be extended as the feature evolves with additional functionalities and UI enhancements.
